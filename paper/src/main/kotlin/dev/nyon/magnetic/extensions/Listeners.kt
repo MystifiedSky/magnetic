@@ -4,13 +4,14 @@ import dev.nyon.magnetic.Plugin
 import org.bukkit.Bukkit
 import org.bukkit.event.Event
 import org.bukkit.event.EventPriority
+import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 
 abstract class SingleListener<T : Event> : Listener {
     abstract fun onEvent(event: T)
 }
 
-inline fun <reified T : Event> listen(priority: EventPriority = EventPriority.NORMAL, crossinline eventCallback: T.() -> Unit) {
+inline fun <reified T : Event> listen(priority: EventPriority = EventPriority.NORMAL, crossinline eventCallback: T.() -> Unit) : SingleListener<T> {
     val listener = object : SingleListener<T>() {
         override fun onEvent(event: T) = eventCallback(event)
     }
@@ -22,4 +23,10 @@ inline fun <reified T : Event> listen(priority: EventPriority = EventPriority.NO
         { _, event -> (event as? T)?.let { listener.onEvent(it) } },
         Plugin
     )
+
+    return listener
+}
+
+fun <T : Event> SingleListener<T>.unregister() {
+    HandlerList.unregisterAll(this)
 }
